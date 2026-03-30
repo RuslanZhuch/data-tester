@@ -1,0 +1,27 @@
+# Build artefacts
+bin/
+bin-int/
+
+# Generated project files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.xcodeproj/
+*.xcworkspace/
+Makefile
+*.make
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.vs/
+*.user
+
+# Stale vendor placeholder (submodule lives under libs/)
+vendor/
+.idea
+premake5.exe
