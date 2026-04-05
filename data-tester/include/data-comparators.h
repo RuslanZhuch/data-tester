@@ -28,8 +28,8 @@ namespace DataComparators
     };
 
     [[nodiscard]] bool compareData(
-        const DataRange<float>& inDataRange1, 
-        const DataRange<float>& inDataRange2, 
+        const DataRange<float>& inDataRangeLeft, 
+        const DataRange<float>& inDataRangeRight, 
         const CompareSettings& inCompareSettings,
         const DataComparatorBase& inDataComparator,
         std::span<DataProcessors::DataProcessorBase* const> inDataProcessors

@@ -1,9 +1,21 @@
 #include "data-processors.h"
+#include <format>
 
-void DataProcessors::DataProcessorMeanSquaredError::acceptData(const float inPoint1, const float inPoint2, [[maybe_unused]] const float inTimeSeconds) noexcept
+void DataProcessors::DataProcessorMeanSquaredError::acceptData(float inPoint1, float inPoint2, [[maybe_unused]] float inTimeSeconds) noexcept
 {
     sumOfSquares += (inPoint1 - inPoint2) * (inPoint1 - inPoint2);
     ++numOfErrors;
+}
+
+void DataProcessors::DataProcessorMeanSquaredError::extractIssues(issues_t& inOutProblemsData) const noexcept
+{
+    const float meanSquaredError = getMeanSquaredError();
+    
+    if (meanSquaredError > desc.maxMeanSquaredError)
+    {
+        std::string problem = std::format(R"(Mean squared error {:.4f} is greater than {}. )", meanSquaredError, desc.maxMeanSquaredError);
+        inOutProblemsData.append(problem);
+    }
 }
 
 float DataProcessors::DataProcessorMeanSquaredError::getMeanSquaredError() const noexcept
@@ -15,18 +27,33 @@ float DataProcessors::DataProcessorMeanSquaredError::getMeanSquaredError() const
     return sumOfSquares / static_cast<float>(numOfErrors);
 }
 
-void DataProcessors::DataProcessorMaxAbsoluteError::acceptData(const float inPoint1, const float inPoint2, [[maybe_unused]] const float inTimeSeconds) noexcept
+void DataProcessors::DataProcessorMaxAbsoluteError::acceptData(float inPoint1, float inPoint2, [[maybe_unused]] float inTimeSeconds) noexcept
 {
     const float NewAbsoluteError = std::abs(inPoint1 - inPoint2);
-    maxAbsoluteError = std::max(maxAbsoluteError, NewAbsoluteError);
+    if (NewAbsoluteError > currentMaxAbsoluteError)
+    {
+        maxErrorDataIndex = currentDataIndex;
+        maxErrorTime = inTimeSeconds;
+        currentMaxAbsoluteError = NewAbsoluteError;
+    }
+    ++currentDataIndex;
 }
 
-std::optional<float> DataProcessors::DataProcessorMaxAbsoluteError::getMaxAbsoluteError() const noexcept
+void DataProcessors::DataProcessorMaxAbsoluteError::extractIssues(issues_t& inOutProblemsData) const noexcept
 {
-    if (maxAbsoluteError < 0)
+    if (currentMaxAbsoluteError > desc.maxAbsoluteError)
     {
-        return std::nullopt;
+        std::string problem = std::format(R"(Absolute error {:.4f} is greater than {}, time: {:.4f}, dataIndex: {}. )", 
+            currentMaxAbsoluteError, 
+            desc.maxAbsoluteError,
+            maxErrorTime,
+            maxErrorDataIndex
+        );
+        inOutProblemsData.append(problem);
     }
-    
-    return maxAbsoluteError;
+}
+
+void DataProcessors::DataProcessorMaxAbsoluteError::onNewDataBlock() noexcept
+{
+    currentDataIndex = {};
 }

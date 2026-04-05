@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <ranges>
+#include <set>
 
 namespace
 {
@@ -48,5 +49,50 @@ void DataHolder::forEachDataRange(const DataRangeCallback& inCallback) const
     for (const std::pair<const std::string, DataRange<float>>& data : this->dataFloats)
     {
         inCallback(data.first, data.second);
+    }
+}
+
+void DataIterator::forEachDataRange(const DataHolder& inDataHolder1, const DataHolder& inDataHolder2, const DataComparators::CompareSettings& inCompareSettings, const DataRangeCallback& inCallback)
+{
+    // TODO: DataHolder's data structure is need to be replaced
+    if (!inCallback)
+    {
+        return;
+    }
+    
+    std::set<std::string> iteratedEntries;
+    for (const std::pair<const std::string, DataRange<float>>& entry1 : inDataHolder1.dataFloats)
+    {
+        if (iteratedEntries.contains(entry1.first))
+        {
+            continue;
+        }
+        iteratedEntries.insert(entry1.first);
+        
+        const auto& entry2 = inDataHolder2.dataFloats.find(entry1.first);
+        if (entry2 == inDataHolder2.dataFloats.end())
+        {
+            inCallback(entry1.first, entry1.second, inCompareSettings, DataRangeFloat{});
+            continue;
+        }
+        
+        inCallback(entry1.first, entry1.second, inCompareSettings, entry2->second);
+    }
+    for (const std::pair<const std::string, DataRange<float>>& entry1 : inDataHolder2.dataFloats)
+    {
+        if (iteratedEntries.contains(entry1.first))
+        {
+            continue;
+        }
+        iteratedEntries.insert(entry1.first);
+        
+        const auto& entry2 = inDataHolder1.dataFloats.find(entry1.first);
+        if (entry2 == inDataHolder1.dataFloats.end())
+        {
+            inCallback(entry1.first, entry1.second, inCompareSettings, DataRangeFloat{});
+            continue;
+        }
+        
+        inCallback(entry1.first, entry1.second, inCompareSettings, entry2->second);
     }
 }

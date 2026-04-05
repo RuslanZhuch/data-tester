@@ -5,6 +5,11 @@
 #include <string>
 #include <functional>
 
+namespace DataComparators
+{
+    struct CompareSettings;
+}
+
 struct DataToInsert
 {
     std::unordered_map<std::string, float> dataFloats;
@@ -33,5 +38,16 @@ public:
 
     void forEachDataRange(const DataRangeCallback& inCallback) const;
 private:
+    friend class DataIterator;
     std::unordered_map<std::string, DataRangeFloat> dataFloats;
 };
+
+class DataIterator
+{
+public:
+    using DataRangeFloat = DataRange<float>;
+    using DataRangeCallback = std::function<void(const std::string&, const DataRangeFloat&, const DataComparators::CompareSettings&, const DataRangeFloat&)>;
+public:
+    void forEachDataRange(const DataHolder& inDataHolder1, const DataHolder& inDataHolder2, const DataComparators::CompareSettings& inCompareSettings, const DataRangeCallback& inCallback);
+};
+

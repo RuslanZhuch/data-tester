@@ -1,6 +1,8 @@
 #pragma once
 
-#include <span>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace DataProcessors
 {
@@ -10,18 +12,29 @@ namespace DataProcessors
 namespace DataComparators
 {
     class DataComparatorBase;
+    struct CompareSettings;
 };
 
 class DataHolder;
 
 namespace DataTester
 {
-
     struct TestRules
     {
-        DataComparators::DataComparatorBase* dataComparator{};
-        DataProcessors::DataProcessorBase* dataProcessor{};
+        const DataComparators::DataComparatorBase* dataComparatorProto{};
+        std::vector<DataProcessors::DataProcessorBase*> dataProcessorsProto{};
+    };
+    
+    struct TestResult
+    {
+        std::string errorJson;
     };
 
-    void TestData(const DataHolder& inDataHolder, const TestRules& inDefaultTestRules, const std::span<const TestRules> inTestRules);
+    [[nodiscard]] TestResult TestData(
+        const DataHolder& inDataHolder1,
+        const DataHolder& inDataHolder2,
+        const TestRules& inDefaultTestRulesProto, 
+        const DataComparators::CompareSettings& inCompareSettings,
+        const std::unordered_map<std::string, TestRules>& inTestRules
+    );
 }

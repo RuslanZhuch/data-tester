@@ -4,7 +4,7 @@
 
 bool DataComparators::DataComparatorLinear::compareData(
     const DataRange<float>& inDataRange1, 
-    const DataRange<float>& inDataRange2, 
+    const DataRange<float>& inDataRange2,
     const float inTimeOffsetSeconds, 
     std::span<DataProcessors::DataProcessorBase* const> inDataProcessors
 ) const noexcept
@@ -61,20 +61,20 @@ bool DataComparators::DataComparatorLinear::compareData(
 }
 
 bool DataComparators::compareData(
-    const DataRange<float>& inDataRange1, 
-    const DataRange<float>& inDataRange2, 
+    const DataRange<float>& inDataRangeLeft, 
+    const DataRange<float>& inDataRangeRight, 
     const CompareSettings& inCompareSettings, 
     const DataComparatorBase& inDataComparator,
     std::span<DataProcessors::DataProcessorBase* const> inDataProcessors
 ) noexcept
 {
-    if (!DataExtractor::isValid(inDataRange1) || !DataExtractor::isValid(inDataRange2))
+    if (!DataExtractor::isValid(inDataRangeLeft) || !DataExtractor::isValid(inDataRangeRight))
     {
         return false;
     }
 
-    const std::optional<DataExtractor::TimeRange> timeRange1 = DataExtractor::getTimeRange(inDataRange1);
-    const std::optional<DataExtractor::TimeRange> timeRange2 = DataExtractor::getTimeRange(inDataRange2);
+    const std::optional<DataExtractor::TimeRange> timeRange1 = DataExtractor::getTimeRange(inDataRangeLeft);
+    const std::optional<DataExtractor::TimeRange> timeRange2 = DataExtractor::getTimeRange(inDataRangeRight);
     if (!timeRange1.has_value() || !timeRange2.has_value())
     {
         return false;
@@ -87,11 +87,11 @@ bool DataComparators::compareData(
     }
 
     const float timeOffsetSeconds = timeRange1->startSeconds - timeRange2->startSeconds;
-    if (!inDataComparator.compareData(inDataRange1, inDataRange2, timeOffsetSeconds, inDataProcessors))
+    if (!inDataComparator.compareData(inDataRangeLeft, inDataRangeRight, timeOffsetSeconds, inDataProcessors))
     {
         return false;
     }
-    if (!inDataComparator.compareData(inDataRange2, inDataRange1, -timeOffsetSeconds, inDataProcessors))
+    if (!inDataComparator.compareData(inDataRangeRight, inDataRangeLeft, -timeOffsetSeconds, inDataProcessors))
     {
         return false;
     }
