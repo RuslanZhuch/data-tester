@@ -37,8 +37,11 @@ public:
     void insertData(const DataToInsert& inDataToInsert);
 
     void forEachDataRange(const DataRangeCallback& inCallback) const;
+    
+    [[nodiscard]] bool operator==(const DataHolder&) const noexcept = default;
 private:
     friend class DataIterator;
+    friend class DataStoreBinary;
     std::unordered_map<std::string, DataRangeFloat> dataFloats;
 };
 
