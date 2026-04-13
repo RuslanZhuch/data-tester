@@ -66,19 +66,6 @@ namespace DataTester
             }
         };
         dataIterator.forEachDataRange(inDataHolder1, inDataHolder2, inCompareSettings, processing);
-        
-//        for (size_t problemIndex = 0; const std::string& problem : problems)
-//        {
-//            if (problemIndex > 0)
-//            {
-//                result.errorJson.append(std::format(", {}", problem));
-//            }
-//            else
-//            {
-//                result.errorJson.append(problem);
-//            }
-//        }
-        
         return result;
     }
 }

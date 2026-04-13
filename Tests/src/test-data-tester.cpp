@@ -2,76 +2,10 @@
 
 #include "data-comparators.h"
 #include "data-holder.h"
+#include "mocks.h"
 
 #include <gtest/gtest.h>
 #include <format>
-
-namespace
-{
-    class DataProcessorMock : public DataProcessors::DataProcessorBase
-    {
-    public:
-        DataProcessorMock(std::string inTag)
-            : tag(std::move(inTag))
-        {
-            
-        }
-        
-        void acceptData([[maybe_unused]] float inPoint1, [[maybe_unused]] float inPoint2, [[maybe_unused]] float inTimeSeconds) noexcept override
-        {
-        }
-        
-        void extractIssues(issues_t& inOutProblemsData) const noexcept override
-        {
-            inOutProblemsData += tag;
-        }
-        
-    private:
-        std::string tag;
-        std::string acceptedData;
-    };
-    
-    class DataComparatorMock : public DataComparators::DataComparatorBase
-    {
-    public:
-        struct Record
-        {
-            DataRange<float> dataRange1;
-            DataRange<float> dataRange2;
-            float timeOffsetSeconds{};
-            std::string processors;
-            
-            constexpr auto operator<=>(const Record& inOther) const = default;
-        };
-    public:
-        bool compareData([[maybe_unused]] const DataRange<float>& inDataRange1, [[maybe_unused]] const DataRange<float>& inDataRange2, [[maybe_unused]] const float inTimeOffsetSeconds, [[maybe_unused]] std::span<DataProcessors::DataProcessorBase* const> inDataProcessors) const noexcept override
-        {
-            
-            Record record
-            {
-                .dataRange1 = inDataRange1,
-                .dataRange2 = inDataRange2,
-                .timeOffsetSeconds = inTimeOffsetSeconds,
-                .processors = {},
-            };
-            
-            for (const DataProcessors::DataProcessorBase* processor : inDataProcessors)
-            {
-                DataProcessors::DataProcessorBase::issues_t issues;
-                processor->extractIssues(issues);
-                if (!issues.empty())
-                {
-                    record.processors += std::format("{}. ", issues);
-                }
-            }
-            
-            this->records.push_back(record);
-            return true;
-        }
-    public:
-        mutable std::vector<Record> records;
-    };
-}
 
 namespace DataTesterTest
 {
@@ -110,15 +44,15 @@ namespace DataTesterTest
         data.timeSeconds = 103.f;
         dataRight.insertData(data);
         
-        DataProcessorMock dataProcessor1("processor1");
-        DataProcessorMock dataProcessor2("processor2");
-        DataProcessorMock dataProcessor3("processor3");
-        DataProcessorMock dataProcessor4("processor4");
-        DataProcessorMock dataProcessor5("processor5");
+        Mocks::DataProcessorMock dataProcessor1("processor1");
+        Mocks::DataProcessorMock dataProcessor2("processor2");
+        Mocks::DataProcessorMock dataProcessor3("processor3");
+        Mocks::DataProcessorMock dataProcessor4("processor4");
+        Mocks::DataProcessorMock dataProcessor5("processor5");
         
-        DataComparatorMock dataComparator1;
-        DataComparatorMock dataComparator2;
-        DataComparatorMock dataComparator3;
+        Mocks::DataComparatorMock dataComparator1;
+        Mocks::DataComparatorMock dataComparator2;
+        Mocks::DataComparatorMock dataComparator3;
 
         DataTester::TestRules defaultRules
         {
@@ -149,9 +83,9 @@ namespace DataTesterTest
         };
         const DataTester::TestResult results = DataTester::TestData(dataLeft, dataRight, defaultRules, compareSettings, specialRules);
 
-        std::vector<DataComparatorMock::Record> expectedDefaultRecords
+        std::vector<Mocks::DataComparatorMock::Record> expectedDefaultRecords
         {
-            DataComparatorMock::Record{
+            Mocks::DataComparatorMock::Record{
                 .dataRange1 = DataRange<float>{
                     .data = {{1.f, 5.f}},
                     .timeSeconds = {{100.f, 101.f}},
@@ -163,7 +97,7 @@ namespace DataTesterTest
                 .timeOffsetSeconds = -2,
                 .processors = "processor1. processor2. ",
             },
-            DataComparatorMock::Record{
+            Mocks::DataComparatorMock::Record{
                 .dataRange1 = DataRange<float>{
                     .data = {{9.f, 13.f}},
                     .timeSeconds = {{102.f, 103.f}},
@@ -175,7 +109,7 @@ namespace DataTesterTest
                 .timeOffsetSeconds = 2,
                 .processors = "processor1. processor2. ",
             },
-            DataComparatorMock::Record{
+            Mocks::DataComparatorMock::Record{
                 .dataRange1 = DataRange<float>{
                     .data = {{2.f, 6.f}},
                     .timeSeconds = {{100.f, 101.f}},
@@ -187,7 +121,7 @@ namespace DataTesterTest
                 .timeOffsetSeconds = -2,
                 .processors = "processor1. processor2. ",
             },
-            DataComparatorMock::Record{
+            Mocks::DataComparatorMock::Record{
                 .dataRange1 = DataRange<float>{
                     .data = {{10.f, 14.f}},
                     .timeSeconds = {{102.f, 103.f}},
@@ -202,9 +136,9 @@ namespace DataTesterTest
         };
         
         
-        std::vector<DataComparatorMock::Record> expectedSpecialRecords1
+        std::vector<Mocks::DataComparatorMock::Record> expectedSpecialRecords1
         {
-            DataComparatorMock::Record{
+            Mocks::DataComparatorMock::Record{
                 .dataRange1 = DataRange<float>{
                     .data = {{3.f, 7.f}},
                     .timeSeconds = {{100.f, 101.f}},
@@ -216,7 +150,7 @@ namespace DataTesterTest
                 .timeOffsetSeconds = -2,
                 .processors = "processor3. ",
             },
-            DataComparatorMock::Record{
+            Mocks::DataComparatorMock::Record{
                 .dataRange1 = DataRange<float>{
                     .data = {{11.f, 15.f}},
                     .timeSeconds = {{102.f, 103.f}},
@@ -231,9 +165,9 @@ namespace DataTesterTest
         };
         
         
-        std::vector<DataComparatorMock::Record> expectedSpecialRecords2
+        std::vector<Mocks::DataComparatorMock::Record> expectedSpecialRecords2
         {
-            DataComparatorMock::Record{
+            Mocks::DataComparatorMock::Record{
                 .dataRange1 = DataRange<float>{
                     .data = {{4.f, 8.f}},
                     .timeSeconds = {{100.f, 101.f}},
@@ -245,7 +179,7 @@ namespace DataTesterTest
                 .timeOffsetSeconds = -2,
                 .processors = "processor4. processor5. ",
             },
-            DataComparatorMock::Record{
+            Mocks::DataComparatorMock::Record{
                 .dataRange1 = DataRange<float>{
                     .data = {{12.f, 16.f}},
                     .timeSeconds = {{102.f, 103.f}},

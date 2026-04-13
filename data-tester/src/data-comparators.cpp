@@ -2,6 +2,56 @@
 #include "data-extractor.h"
 #include "data-processors.h"
 
+namespace
+{
+    struct LinearInterval
+    {
+        
+    };
+    
+    [[nodiscard]] std::optional<DataExtractor::DataRangeView> FindLinearInterval(
+        const DataRange<float>& inDataRange,
+        DataExtractor::DataRangeView InCurrentLinearInterval,
+        float inTimeSeconds
+    )
+    {
+        std::optional<DataExtractor::DataRangeView> NewLinearInterval;
+        if (InCurrentLinearInterval.numOfPoints <= 0)
+        {
+            const bool isExtracted = DataExtractor::extractNextDataPoints(inDataRange, 2, InCurrentLinearInterval);
+            if (!isExtracted)
+            {
+                return NewLinearInterval;
+            }
+            NewLinearInterval = InCurrentLinearInterval;
+        }
+        
+        while (true)
+        {
+            const size_t index = InCurrentLinearInterval.firstPointIndex + 1;
+            if (index >= inDataRange.timeSeconds.size())
+            {
+                return NewLinearInterval;
+            }
+            
+            const float timeSecondsRight = inDataRange.timeSeconds[index];
+            if (timeSecondsRight < inTimeSeconds)
+            {
+                const bool isExtracted = DataExtractor::extractNextDataPoints(inDataRange, 2, InCurrentLinearInterval);
+                if (isExtracted)
+                {
+                    NewLinearInterval = InCurrentLinearInterval;
+                    continue;
+                }
+                return NewLinearInterval;
+            }
+            
+            return NewLinearInterval;
+        }
+    }
+    
+}
+
 bool DataComparators::DataComparatorLinear::compareData(
     const DataRange<float>& inDataRange1, 
     const DataRange<float>& inDataRange2,
@@ -24,36 +74,26 @@ bool DataComparators::DataComparatorLinear::compareData(
     {
         const float currentTimeSeconds = inDataRange1.timeSeconds[pointIndex] + inTimeOffsetSeconds;
         
-        while(true)
+        const auto newDataRangeView2Opt = FindLinearInterval(inDataRange2, dataRangeView2, currentTimeSeconds);
+        if (newDataRangeView2Opt.has_value())
         {
-            const bool isExtracted = DataExtractor::extractNextDataPoints(inDataRange2, 2, dataRangeView2);
-            if (!isExtracted)
-            {
-                return false;
-            }
+            dataRangeView2 = newDataRangeView2Opt.value();
+        }
         
-            const float anotherTimeSecondsLeft = inDataRange2.timeSeconds[dataRangeView2.firstPointIndex];
-            const float anotherTimeSecondsRight = inDataRange2.timeSeconds[dataRangeView2.firstPointIndex + 1];
+        const float anotherTimeSecondsLeft = inDataRange2.timeSeconds[dataRangeView2.firstPointIndex];
+        const float anotherTimeSecondsRight = inDataRange2.timeSeconds[dataRangeView2.firstPointIndex + 1];
     
-            if (anotherTimeSecondsRight < currentTimeSeconds)
-            {
-                continue;
-            }
-
-            const float timeCoefficient = (currentTimeSeconds - anotherTimeSecondsLeft) / (anotherTimeSecondsRight - anotherTimeSecondsLeft);
+        const float timeCoefficient = (currentTimeSeconds - anotherTimeSecondsLeft) / (anotherTimeSecondsRight - anotherTimeSecondsLeft);
             
-            const float anotherPointLeft = inDataRange2.data[dataRangeView2.firstPointIndex];
-            const float anotherPointRight = inDataRange2.data[dataRangeView2.firstPointIndex + 1];
-            const float anotherPoint = anotherPointLeft + (anotherPointRight - anotherPointLeft) * timeCoefficient;
+        const float anotherPointLeft = inDataRange2.data[dataRangeView2.firstPointIndex];
+        const float anotherPointRight = inDataRange2.data[dataRangeView2.firstPointIndex + 1];
+        const float anotherPoint = anotherPointLeft + (anotherPointRight - anotherPointLeft) * timeCoefficient;
 
-            const float currentPoint = inDataRange1.data[pointIndex];
+        const float currentPoint = inDataRange1.data[pointIndex];
 
-            for (DataProcessors::DataProcessorBase* const dataProcessor : inDataProcessors)
-            {
-                dataProcessor->acceptData(currentPoint, anotherPoint, currentTimeSeconds);
-            }
-
-            break;
+        for (DataProcessors::DataProcessorBase* const dataProcessor : inDataProcessors)
+        {
+            dataProcessor->acceptData(currentPoint, anotherPoint, currentTimeSeconds);
         }
     }
 
