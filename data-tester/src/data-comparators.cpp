@@ -12,7 +12,8 @@ namespace
     [[nodiscard]] std::optional<DataExtractor::DataRangeView> FindLinearInterval(
         const DataRange<float>& inDataRange,
         DataExtractor::DataRangeView InCurrentLinearInterval,
-        float inTimeSeconds
+        float inTimeSeconds,
+        float inPreviusTimeSeconds
     )
     {
         std::optional<DataExtractor::DataRangeView> NewLinearInterval;
@@ -35,7 +36,7 @@ namespace
             }
             
             const float timeSecondsRight = inDataRange.timeSeconds[index];
-            if (timeSecondsRight < inTimeSeconds)
+            if (timeSecondsRight < inTimeSeconds || inPreviusTimeSeconds == timeSecondsRight)
             {
                 const bool isExtracted = DataExtractor::extractNextDataPoints(inDataRange, 2, InCurrentLinearInterval);
                 if (isExtracted)
@@ -69,12 +70,15 @@ bool DataComparators::DataComparatorLinear::compareData(
         dataProcessor->onNewDataBlock();
     }
 
+    float previousTimeSeconds = -1.f;
+    
     DataExtractor::DataRangeView dataRangeView2;
     for (size_t pointIndex = 0; pointIndex < inDataRange1.data.size(); ++pointIndex)
     {
         const float currentTimeSeconds = inDataRange1.timeSeconds[pointIndex] + inTimeOffsetSeconds;
         
-        const auto newDataRangeView2Opt = FindLinearInterval(inDataRange2, dataRangeView2, currentTimeSeconds);
+        const auto newDataRangeView2Opt = FindLinearInterval(inDataRange2, dataRangeView2, currentTimeSeconds, previousTimeSeconds);
+        previousTimeSeconds = currentTimeSeconds;
         if (newDataRangeView2Opt.has_value())
         {
             dataRangeView2 = newDataRangeView2Opt.value();
@@ -83,7 +87,12 @@ bool DataComparators::DataComparatorLinear::compareData(
         const float anotherTimeSecondsLeft = inDataRange2.timeSeconds[dataRangeView2.firstPointIndex];
         const float anotherTimeSecondsRight = inDataRange2.timeSeconds[dataRangeView2.firstPointIndex + 1];
     
-        const float timeCoefficient = (currentTimeSeconds - anotherTimeSecondsLeft) / (anotherTimeSecondsRight - anotherTimeSecondsLeft);
+        //TODO: If anotherTimeSecondsRight == anotherTimeSecondsLeft -> NaN
+        float timeCoefficient = 0.f;
+        if (anotherTimeSecondsRight != anotherTimeSecondsLeft) 
+        {
+            timeCoefficient = (currentTimeSeconds - anotherTimeSecondsLeft) / (anotherTimeSecondsRight - anotherTimeSecondsLeft);
+        }
             
         const float anotherPointLeft = inDataRange2.data[dataRangeView2.firstPointIndex];
         const float anotherPointRight = inDataRange2.data[dataRangeView2.firstPointIndex + 1];

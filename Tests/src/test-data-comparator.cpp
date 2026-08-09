@@ -195,4 +195,60 @@ namespace DataComparatorTest
         EXPECT_ACCEPTED_DATA_ELEMENTS_EQ(dataProcessor1.acceptedDataElements, expectedAcceptedDataElements);
         EXPECT_ACCEPTED_DATA_ELEMENTS_EQ(dataProcessor2.acceptedDataElements, expectedAcceptedDataElements);
     }
+
+    TEST(DataComparatorLinear, DuplicateFirstTime)
+    {
+        DataRange<float> dataRange1{
+            .data = {1.f, 2.f, 6.f, 12.f},
+            .timeSeconds = {10.f, 10.f, 25.f, 30.f},
+        };
+        DataRange<float> dataRange2{
+            .data = {50.f, 60.f, 65.f, 75.f},
+            .timeSeconds = {10.f, 10.f, 25.f, 31.f},
+        };
+        float timeOffsetSeconds = 0.0f;
+
+        Mocks::DataProcessorMock dataProcessor1("Processor1");
+        Mocks::DataProcessorMock dataProcessor2("Processor2");
+
+        std::vector<DataProcessors::DataProcessorBase*> dataProcessors {
+            &dataProcessor1,
+            &dataProcessor2,
+        };
+
+        DataComparators::DataComparatorLinear comparator;
+        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors));
+
+        EXPECT_EQ(dataProcessor1.numOfNewDataBlocks, 1);
+        EXPECT_EQ(dataProcessor2.numOfNewDataBlocks, 1);
+
+        EXPECT_EQ(dataProcessor1.acceptedDataElements.size(), 4);
+        EXPECT_EQ(dataProcessor2.acceptedDataElements.size(), 4);
+
+        std::vector expectedAcceptedDataElements {
+            Mocks::DataProcessorMock::AcceptedDataElement {
+                .inPoint1 = 1.f,
+                .inPoint2 = 50.f,
+                .inTimeSeconds = 10.f,
+            },
+            Mocks::DataProcessorMock::AcceptedDataElement {
+                .inPoint1 = 2.f,
+                .inPoint2 = 60.f,
+                .inTimeSeconds = 10.f,
+            },
+            Mocks::DataProcessorMock::AcceptedDataElement {
+                .inPoint1 = 6.f,
+                .inPoint2 = 65.f,
+                .inTimeSeconds = 25.f,
+            },
+            Mocks::DataProcessorMock::AcceptedDataElement {
+                .inPoint1 = 12.f,
+                .inPoint2 = 73.33f,
+                .inTimeSeconds = 30.f,
+            },
+        };
+
+        EXPECT_ACCEPTED_DATA_ELEMENTS_EQ(dataProcessor1.acceptedDataElements, expectedAcceptedDataElements);
+        EXPECT_ACCEPTED_DATA_ELEMENTS_EQ(dataProcessor2.acceptedDataElements, expectedAcceptedDataElements);
+    }
 }

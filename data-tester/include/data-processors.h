@@ -39,6 +39,7 @@ namespace DataProcessors
         void extractIssues(issues_t& inOutProblemsData) const noexcept override;
     private:
         [[nodiscard]] float getMeanSquaredError() const noexcept;
+        void onNewDataBlock() noexcept override;
     private:
         float sumOfSquares{};
         int32_t numOfErrors{};

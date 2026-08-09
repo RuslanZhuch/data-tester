@@ -3,7 +3,8 @@
 
 void DataProcessors::DataProcessorMeanSquaredError::acceptData(float inPoint1, float inPoint2, [[maybe_unused]] float inTimeSeconds) noexcept
 {
-    sumOfSquares += (inPoint1 - inPoint2) * (inPoint1 - inPoint2);
+    const float NewError = (inPoint1 - inPoint2) * (inPoint1 - inPoint2);
+    sumOfSquares += NewError;
     ++numOfErrors;
 }
 
@@ -16,6 +17,11 @@ void DataProcessors::DataProcessorMeanSquaredError::extractIssues(issues_t& inOu
         std::string problem = std::format(R"(Mean squared error {:.4f} is greater than {}. )", meanSquaredError, desc.maxMeanSquaredError);
         inOutProblemsData.append(problem);
     }
+}
+
+void DataProcessors::DataProcessorMeanSquaredError::onNewDataBlock() noexcept
+{
+    numOfErrors = {};
 }
 
 float DataProcessors::DataProcessorMeanSquaredError::getMeanSquaredError() const noexcept
