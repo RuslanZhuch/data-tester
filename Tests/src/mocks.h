@@ -78,7 +78,7 @@ namespace Mocks
             constexpr auto operator<=>(const Record& inOther) const = default;
         };
     public:
-        bool compareData([[maybe_unused]] const DataRange<float>& inDataRange1, [[maybe_unused]] const DataRange<float>& inDataRange2, [[maybe_unused]] const float inTimeOffsetSeconds, [[maybe_unused]] std::span<DataProcessors::DataProcessorBase* const> inDataProcessors) const noexcept override
+        std::string compareData([[maybe_unused]] const DataRange<float>& inDataRange1, [[maybe_unused]] const DataRange<float>& inDataRange2, [[maybe_unused]] const float inTimeOffsetSeconds, [[maybe_unused]] std::span<DataProcessors::DataProcessorBase* const> inDataProcessors) const override
         {
             
             Record record
@@ -100,7 +100,7 @@ namespace Mocks
             }
             
             this->records.push_back(record);
-            return true;
+            return {};
         }
     public:
         mutable std::vector<Record> records;

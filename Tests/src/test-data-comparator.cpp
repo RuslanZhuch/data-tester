@@ -24,7 +24,7 @@ namespace DataComparatorTest
         };
 
         DataComparators::DataComparatorLinear comparator;
-        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors));
+        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors).empty());
         
         EXPECT_EQ(dataProcessor1.numOfNewDataBlocks, 1);
         EXPECT_EQ(dataProcessor2.numOfNewDataBlocks, 1);
@@ -54,7 +54,7 @@ namespace DataComparatorTest
         };
 
         DataComparators::DataComparatorLinear comparator;
-        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors));
+        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors).empty());
         
         EXPECT_EQ(dataProcessor1.numOfNewDataBlocks, 1);
         EXPECT_EQ(dataProcessor2.numOfNewDataBlocks, 1);
@@ -115,7 +115,7 @@ namespace DataComparatorTest
         };
 
         DataComparators::DataComparatorLinear comparator;
-        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors));
+        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors).empty());
         
         EXPECT_EQ(dataProcessor1.numOfNewDataBlocks, 1);
         EXPECT_EQ(dataProcessor2.numOfNewDataBlocks, 1);
@@ -166,7 +166,7 @@ namespace DataComparatorTest
         };
 
         DataComparators::DataComparatorLinear comparator;
-        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors));
+        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors).empty());
         
         EXPECT_EQ(dataProcessor1.numOfNewDataBlocks, 1);
         EXPECT_EQ(dataProcessor2.numOfNewDataBlocks, 1);
@@ -217,7 +217,7 @@ namespace DataComparatorTest
         };
 
         DataComparators::DataComparatorLinear comparator;
-        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors));
+        EXPECT_TRUE(comparator.compareData(dataRange1, dataRange2, timeOffsetSeconds, dataProcessors).empty());
 
         EXPECT_EQ(dataProcessor1.numOfNewDataBlocks, 1);
         EXPECT_EQ(dataProcessor2.numOfNewDataBlocks, 1);

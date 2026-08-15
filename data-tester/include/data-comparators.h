@@ -3,8 +3,7 @@
 #include "data-processors.h"
 #include <span>
 #include <functional>
-
-class DataProcessors::DataProcessorBase;
+#include <string>
 
 namespace DataComparators
 {
@@ -18,20 +17,20 @@ namespace DataComparators
     public:
         virtual ~DataComparatorBase() = default;
     public:
-        virtual bool compareData(const DataRange<float>& inDataRange1, const DataRange<float>& inDataRange2, const float inTimeOffsetSeconds, std::span<DataProcessors::DataProcessorBase* const> inDataProcessors) const noexcept = 0;
+        [[nodiscard]] virtual std::string compareData(const DataRange<float>& inDataRange1, const DataRange<float>& inDataRange2, const float inTimeOffsetSeconds, std::span<DataProcessors::DataProcessorBase* const> inDataProcessors) const = 0;
     };
 
     class DataComparatorLinear : public DataComparatorBase
     {
     public:
-        bool compareData(const DataRange<float>& inDataRange1, const DataRange<float>& inDataRange2, const float inTimeOffsetSeconds, std::span<DataProcessors::DataProcessorBase* const> inDataProcessors) const noexcept override;
+        [[nodiscard]] std::string compareData(const DataRange<float>& inDataRange1, const DataRange<float>& inDataRange2, const float inTimeOffsetSeconds, std::span<DataProcessors::DataProcessorBase* const> inDataProcessors) const override;
     };
 
-    [[nodiscard]] bool compareData(
+    [[nodiscard]] std::string compareData(
         const DataRange<float>& inDataRangeLeft, 
         const DataRange<float>& inDataRangeRight, 
         const CompareSettings& inCompareSettings,
         const DataComparatorBase& inDataComparator,
         std::span<DataProcessors::DataProcessorBase* const> inDataProcessors
-    ) noexcept;
+    );
 }

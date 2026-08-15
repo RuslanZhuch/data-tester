@@ -21,6 +21,7 @@ void DataProcessors::DataProcessorMeanSquaredError::extractIssues(issues_t& inOu
 
 void DataProcessors::DataProcessorMeanSquaredError::onNewDataBlock() noexcept
 {
+    sumOfSquares = {};
     numOfErrors = {};
 }
 
@@ -62,4 +63,5 @@ void DataProcessors::DataProcessorMaxAbsoluteError::extractIssues(issues_t& inOu
 void DataProcessors::DataProcessorMaxAbsoluteError::onNewDataBlock() noexcept
 {
     currentDataIndex = {};
+    currentMaxAbsoluteError = {};
 }

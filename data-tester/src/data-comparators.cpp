@@ -2,6 +2,8 @@
 #include "data-extractor.h"
 #include "data-processors.h"
 
+#include <string>
+
 namespace
 {
     struct LinearInterval
@@ -53,16 +55,16 @@ namespace
     
 }
 
-bool DataComparators::DataComparatorLinear::compareData(
+std::string DataComparators::DataComparatorLinear::compareData(
     const DataRange<float>& inDataRange1, 
     const DataRange<float>& inDataRange2,
     const float inTimeOffsetSeconds, 
     std::span<DataProcessors::DataProcessorBase* const> inDataProcessors
-) const noexcept
+) const
 {
     if (inDataProcessors.empty())
     {
-        return false;
+        return "No data processors provided";
     }
 
     for (DataProcessors::DataProcessorBase* const dataProcessor : inDataProcessors)
@@ -106,44 +108,54 @@ bool DataComparators::DataComparatorLinear::compareData(
         }
     }
 
-    return true;
+    return {};
 }
 
-bool DataComparators::compareData(
+std::string DataComparators::compareData(
     const DataRange<float>& inDataRangeLeft, 
     const DataRange<float>& inDataRangeRight, 
     const CompareSettings& inCompareSettings, 
     const DataComparatorBase& inDataComparator,
     std::span<DataProcessors::DataProcessorBase* const> inDataProcessors
-) noexcept
+)
 {
-    if (!DataExtractor::isValid(inDataRangeLeft) || !DataExtractor::isValid(inDataRangeRight))
+    if (!DataExtractor::isValid(inDataRangeLeft))
     {
-        return false;
+        return "Invalid first data range";
+    }
+    if (!DataExtractor::isValid(inDataRangeRight))
+    {
+        return "Invalid second data range";
     }
 
     const std::optional<DataExtractor::TimeRange> timeRange1 = DataExtractor::getTimeRange(inDataRangeLeft);
-    const std::optional<DataExtractor::TimeRange> timeRange2 = DataExtractor::getTimeRange(inDataRangeRight);
-    if (!timeRange1.has_value() || !timeRange2.has_value())
+    if (!timeRange1.has_value())
     {
-        return false;
+        return "Unable to get time range for first data range";
+    }
+    const std::optional<DataExtractor::TimeRange> timeRange2 = DataExtractor::getTimeRange(inDataRangeRight);
+    if (!timeRange2.has_value())
+    {
+        return "Unable to get time range for second data range";
     }
 
     const float durationDifferenceSeconds = std::abs(timeRange2->endSeconds - timeRange1->endSeconds);
     if (durationDifferenceSeconds > inCompareSettings.maxTimeDifferenceSeconds)
     {
-        return false;
+        return "Duration difference exceeds max time difference";
     }
 
     const float timeOffsetSeconds = timeRange1->startSeconds - timeRange2->startSeconds;
-    if (!inDataComparator.compareData(inDataRangeLeft, inDataRangeRight, timeOffsetSeconds, inDataProcessors))
+    const std::string firstToSecondError = inDataComparator.compareData(inDataRangeLeft, inDataRangeRight, timeOffsetSeconds, inDataProcessors);
+    if (!firstToSecondError.empty())
     {
-        return false;
+        return "First-to-second comparison failed: " + firstToSecondError;
     }
-    if (!inDataComparator.compareData(inDataRangeRight, inDataRangeLeft, -timeOffsetSeconds, inDataProcessors))
+    const std::string secondToFirstError = inDataComparator.compareData(inDataRangeRight, inDataRangeLeft, -timeOffsetSeconds, inDataProcessors);
+    if (!secondToFirstError.empty())
     {
-        return false;
+        return "Second-to-first comparison failed: " + secondToFirstError;
     }
 
-    return true;
+    return {};
 }

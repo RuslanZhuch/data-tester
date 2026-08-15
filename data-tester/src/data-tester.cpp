@@ -37,7 +37,7 @@ namespace DataTester
         {
             const TestRules& actualTestRules = gatherTestRules(inDataName);
             
-            const bool bSuccessful = DataComparators::compareData(
+            const std::string compareError = DataComparators::compareData(
                 inDataRange1, 
                 inDataRange2, 
                 inCompareSettings, 
@@ -45,8 +45,13 @@ namespace DataTester
                 actualTestRules.dataProcessorsProto
             );
             
-            if (!bSuccessful)
+            if (!compareError.empty())
             {
+                if (!result.errorJson.empty())
+                {
+                    result.errorJson.append(",");
+                }
+                result.errorJson.append(std::format(R"({{"entry": {}, "desc": {}}})", inDataName, compareError));
                 return;
             }
             
